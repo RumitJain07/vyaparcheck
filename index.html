@@ -1,0 +1,226 @@
+<!DOCTYPE html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>VyaparCheck</title><link rel="manifest" href="manifest.json"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="VyaparCheck"><link rel="apple-touch-icon" href="icon.png"><meta name="theme-color" content="#1d1d1f">
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--ink:#1d1d1f;--mut:#6b6b70;--acc:#0f766e;--acc2:#e8f3f1;--warn:#b45309;--line:#d9d6cf;color-scheme:light}
+*{box-sizing:border-box}body{margin:0;font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;background:var(--ink);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:5;gap:8px}
+header b{letter-spacing:.5px}header button{background:none;border:1px solid #fff6;color:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
+main{max-width:640px;margin:auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:0 0 10px}
+label{display:block;font-size:13px;color:var(--mut);margin-bottom:4px}
+input,select,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font:16px/1.3 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#fff;color:#1d1d1f;-webkit-text-fill-color:#1d1d1f;opacity:1}
+input::placeholder,textarea::placeholder{color:#a3a09a;-webkit-text-fill-color:#a3a09a}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.f{margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{padding:8px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;background:#fff;color:var(--ink);cursor:pointer;user-select:none}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn{width:100%;padding:14px;border:0;border-radius:12px;background:var(--acc);color:#fff;font-weight:600;font-size:16px;cursor:pointer}
+.btn.s{background:#fff;color:var(--acc);border:1px solid var(--acc);margin-top:4px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.kpi{background:var(--acc2);border-radius:10px;padding:10px}.kpi small{color:var(--mut);display:block;font-size:12px}.kpi b{font-size:18px}
+.big{font-size:19px;font-weight:700;color:var(--warn);margin:6px 0}
+.win{background:#fff7e8;border-radius:10px;padding:10px 12px;margin-top:10px}
+.tap{cursor:pointer}.calc{background:#f3f2ee;border-radius:10px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.6}
+.tag{display:inline-block;background:var(--ink);color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;margin:0 4px 4px 0}
+ol,ul{padding-left:20px;margin:6px 0}li{margin-bottom:6px}
+.tier{font-weight:700;margin-top:12px;color:var(--acc)}
+.priv{border:1.5px dashed var(--warn)}.priv h2{color:var(--warn)}
+.hide{display:none!important}.mut{color:var(--mut);font-size:13px}
+.hist div{padding:8px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.hist button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:4px 8px}
+</style></head><body>
+<header><b>VYAPARCHECK</b><div><button id="hb">History</button> <button id="ob">Owner view</button></div></header>
+<main>
+<div id="hist" class="card hist hide"><h2>Records</h2><div style="display:flex;gap:8px;margin-bottom:6px"><button class="btn s" style="margin:0;padding:10px;font-size:14px" id="ex">Excel mein download</button><button class="btn s" style="margin:0;padding:10px;font-size:14px;color:#b91c1c;border-color:#b91c1c" id="da">Sab delete</button></div><div id="hl"></div></div>
+<form id="fm" autocomplete="off">
+<div class="card"><h2>Business</h2>
+<div class="g2 f"><div><label>Naam</label><input id="nm" placeholder="Sharma Kirana"></div><div><label>Area</label><input id="ar" placeholder="Andheri W"></div></div>
+<label>Kis cheez ka business</label><select id="ty"></select><div id="otw" class="hide" style="margin-top:10px"><label>Business kya hai?</label><input id="ot" placeholder="jaise hardware, tailor, jewellery, garage"></div></div>
+<div class="card"><h2>Andaaza (jo pata ho wahi)</h2>
+<div class="g2"><div><label>Mahine ka dhanda ₹</label><input id="sl" type="number" inputmode="numeric" placeholder="3,00,000"></div>
+<div><label>Mahine ka fix kharcha ₹<br><span class="mut">sirf rent, salary, bijli (maal nahi)</span></label><input id="fx" type="number" inputmode="numeric" placeholder="60,000"></div></div>
+<p class="mut" style="margin:8px 0 0">Khaali chhodo to bhi chalega, phir sirf solutions aayenge.</p></div>
+<div class="card"><h2>Owner ki problem (jitni lage, tap karo)</h2><div class="chips" id="pb"></div></div>
+<div class="card"><h2>Mera note</h2><textarea id="rm" rows="3" placeholder="Jo dekha / suna — dukaan gali ke andar hai, bagal mein D-Mart khula, staff jaldi chhod deta..."></textarea></div>
+<button class="btn" type="button" id="go">Checkup karo</button>
+</form>
+<div id="out"></div>
+</main>
+<script>
+// type: [label, margin, combo, {vis,conv,rep} type-specific tips]
+const T={
+kirana:['Kirana / General store',.15,'monthly ration kit — fixed price, ghar tak delivery',{season:'Tyohaar se pehle gift hamper / dry-fruit box ki pre-booking',vis:'Society/building ke WhatsApp groups mein entry: "1 call pe ghar tak saaman"',conv:'Billing counter ke paas chhota rack: chocolate, namkeen, batteries — ye bina soche bikte hain',rep:'Mahine ki ration list WhatsApp pe lo, packed ready rakho — customer ko dukaan badalne ki zarurat hi na pade'}],
+food:['Restaurant / Cafe / Dhaba',.35,'thali/meal combo + drink, round price pe',{season:'Khaali mahino mein office/tiffin lunch subscription',vis:'Google aur Swiggy/Zomato pe khane ki asli photos — din ki roshni mein, phone se',conv:'Menu chhota karo, top 5 dish highlight karo — log jaldi decide karte hain, order bada hota hai',rep:'Har table pe card: "5th visit pe dessert free"'}],
+salon:['Salon / Parlour',.5,'haircut + beard + head massage package',{season:'Off-season mein bridal/party package ki pre-booking + student offer',vis:'Roz 1 before/after photo Insta aur Google pe',conv:'Wait karte customer ko rate card dikhao — head massage/facial jaise add-on wahin bikte hain',rep:'Jaate waqt agli appointment book karo + 3 hafte baad reminder message'}],
+cloth:['Kapde / Boutique / Footwear',.35,'"2 lo, 10% off" ya complete matching set',{season:'Saal bhar bikne wala maal add karo: party wear, uniform, gifting — season ka intezaar kam',vis:'Naye stock ki try-on reels aur WhatsApp catalogue',conv:'Trial room aur mirror ki lighting theek karo — kapda wahin bikta hai',rep:'Tyohaar/shaadi season se pehle purane customers ko "naya stock aaya" message'}],
+elec:['Mobile / Electronics / Repair',.12,'phone + cover + tempered glass + charger combo',{season:'Exam/admission season pe laptop-tablet offer + repair AMC',vis:'Google listing mein "mobile repair near me" wali services ki list',conv:'Accessories ka ready combo counter pe — phone ke saath turant bikta hai',rep:'Phone ke saath "free screen-guard change" card — customer wapas aata hai'}],
+pharma:['Medical / Pharmacy',.18,'monthly dawai refill + free home delivery',{season:'Mahine mein 1 BP-sugar check day — log aate hain aur dawai bhi lete hain',vis:'Society groups mein "dawai ghar tak, 30 min mein"',conv:'Brand ke saath sasta generic option bhi batao — bharosa banta hai',rep:'BP/sugar jaisi monthly dawai lene walon ki refill reminder list'}],
+gym:['Gym / Fitness',.5,'3-month plan + diet chart + 1 PT session',{season:'New Year aur garmi se pehle "transformation challenge"',vis:'Members ki transformation reels (unki permission se)',conv:'Free 3-day trial + pehle din owner/trainer khud mile',rep:'15 din se na aaye member ko call — renewal yahin bachta hai'}],
+coach:['Coaching / Tuition',.6,'free demo class + sibling discount',{season:'Chhuttiyon mein crash course / summer camp',vis:'Results/topper ke posters + parents ke WhatsApp groups',conv:'Demo class ke baad usi din parent se baat',rep:'Har mahine parent ko 1 progress message — renewal aur referral pakka'}],
+bakery:['Bakery / Sweets',.4,'birthday combo: cake + candles + snacks',{season:'Office/corporate ke liye monthly snack order',vis:'Custom cake ki photos Insta aur Google pe',conv:'Counter pe "aaj ka fresh" board',rep:'Customers ki birthday list + 1 din pehle "cake book karein?" message'}],
+service:['Service (tailor, laundry, repair…)',.45,'yearly AMC / monthly plan',{season:'Khaali mahino mein AMC/plan bechne ka time',vis:'Google listing + kaam ki before/after photos',conv:'Printed rate list — bharosa badhta hai, mol-bhaav kam',rep:'Kaam ke kuch mahine baad "service ka time ho gaya" reminder'}],
+other:['Kuch aur',.3,'2–3 cheezon ka fixed-price combo',{season:'Saal bhar bikne wali 1 cheez add karo',vis:'Google listing + WhatsApp status pe roz 1 photo',conv:'Best-seller entry pe, saaf aur roshni mein',rep:'Har customer ka number + mahine mein 1 offer message'}]};
+const P={sale:['Sale kam hai',{vis:1,conv:1,rep:1}],foot:['Log aate hi nahi',{vis:3}],conv:['Dekh ke chale jaate hain',{conv:3}],barg:['Mol-bhaav / mehenga bolte',{comp:2,conv:1}],rep:['Purane customer nahi aate',{rep:3}],comp:['Bagal mein / online competition',{comp:3}],marg:['Paisa bachta nahi',{money:3}],udh:['Udhaar fasa hai',{money:3}],cost:['Kharcha / rent zyada',{money:3}],staff:['Staff tikta nahi / kaam nahi karta',{ppl:3}],time:['Sab khud karna padta hai',{ops:3}],stock:['Maal pada rehta / kharab hota',{ops:2,money:1}],season:['Sirf season mein chalta hai',{season:3}]};
+const K=[[/udh?aa?r|baa?ki|credit|fas/i,'money',2],[/rent|kiraya|kharcha|loss|bachta/i,'money',2],[/staff|naukar|worker|ladka|ladki|employee|chhod/i,'ppl',2],[/time|thak|akela|khud/i,'ops',2],[/stock|maal|expiry|waste|kharab/i,'ops',2],[/google|review|insta|map|dikhta|gali|andar|board/i,'vis',2],[/bargain|mol|discount|meh?enga|price|rate|sasta/i,'comp',1],[/bargain|mol|discount|meh?enga/i,'conv',1],[/season|diwali|tyoh?aa?r|shaadi|garmi|baaki mahine|off.?season/i,'season',2],[/wapas|repeat|regular|purane|loyal/i,'rep',2],[/online|amazon|flipkart|d-?mart|blinkit|zepto|instamart|competition|bagal|naya shop|nayi dukaan/i,'comp',2],[/footfall|koi nahi aata|customer nahi|bheed/i,'vis',2]];
+const B={vis:['Visibility','Naye log aapko dhoondh/jaan nahi paa rahe'],conv:['Conversion','Log aate hain, par jitna kharid sakte hain utna nahi kharidte'],rep:['Repeat Customers','Customer ek baar aake wapas nahi aate'],money:['Profit','Dhanda chal raha hai, par paisa haath mein nahi bachta'],ops:['Operations','Sab kuch owner ke sir pe hai — badhne ka time nahi'],ppl:['Staff','Staff ki wajah se kaam aur customer dono atakte hain'],comp:['Competition','Bagal wala / online sasta ya zyada aasaan lag raha hai'],season:['Seasonality','Dhanda sirf season mein, baaki mahine khaali']};
+// lever per bucket: [label, fn(sale,margin,fixed)]
+const LV={vis:['15% naye customer badhe',(s,m)=>s*.15*m],conv:['har bill 10% bada (combo/add-on)',(s,m)=>s*.10*m],rep:['har 10 mein se 1 customer ek baar extra aaye',(s,m)=>s*.10*m],money:['rate 2% upar + kharche mein 5% kami',(s,m,f)=>s*.02+f*.05],ops:['owner ka bacha time bikri mein laga (≈5% sale)',(s,m)=>s*.05*m],ppl:['staff har customer ko 1 add-on bole (≈5% sale)',(s,m)=>s*.05*m],comp:['jo customer online/bagal mein gaye unme se kuch wapas aaye (≈8% sale)',(s,m)=>s*.08*m],season:['khaali mahino ki bikri thodi bhi uthi (saal ka average ≈10%)',(s,m)=>s*.10*m]};
+const PCT={vis:.15,conv:.1,rep:.1,ops:.05,ppl:.05,comp:.08,season:.1};
+const gainOf=(b,s,m,f)=>b==='money'?s*.02+f*.05:s*PCT[b]*m;
+function calcHtml(b,s,m,f,g,id){return `<div class="win tap" onclick="$('${id}').classList.toggle('hide')">Is plan se: agar <b>${LV[b][0]}</b> → <b style="color:var(--acc)">+${R(g)} har mahine</b>, yaani <b>${R(g*12)} saal ka</b>. ⓘ</div><div id="${id}" class="calc hide"><b>Fayde ka hisaab</b><br>${b==='money'?`Dhanda ${R(s)} × 2% (rate badhane se) = ${R(s*.02)}<br>+ Fix kharcha ${R(f)} × 5% (kharche mein kami) = ${R(f*.05)}<br>= <b>${R(g)}</b> har mahine`:`Dhanda ${R(s)} × ${Math.round(PCT[b]*100)}% (extra bikri) = ${R(s*PCT[b])}<br>× ${+(m*100).toFixed(1)}% margin = <b>${R(g)}</b> har mahine bachat mein`}<br>× 12 = ${R(g*12)} saal ka</div>`}
+const $=i=>document.getElementById(i),R=n=>(n<0?'-₹':'₹')+Math.abs(Math.round(n)).toLocaleString('en-IN');
+$('ty').innerHTML=Object.entries(T).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join('');
+$('ty').onchange=()=>$('otw').classList.toggle('hide',$('ty').value!=='other');
+$('pb').innerHTML=Object.entries(P).map(([k,v])=>`<span class="chip" data-k="${k}">${v[0]}</span>`).join('');
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>c.classList.toggle('on'));
+let owner=false;$('ob').onclick=()=>{owner=!owner;$('ob').textContent=owner?'Meri view':'Owner view';document.querySelectorAll('.priv').forEach(e=>e.classList.toggle('hide',owner))};
+
+// type × problem specific solutions: [aaj1, aaj2, hafte]
+const TS={
+kirana:{vis:['Building/society ke WhatsApp groups mein number daalo: "1 message pe ghar tak saaman"','Dukaan ke bahar bada board: "Home delivery · UPI · Khaata"','Aas-paas ki 3 society ke watchman se tie-up — naye kirayedaar ko aapka number de'],
+conv:['Billing counter pe impulse rack: chocolate, namkeen, batteries — bina soche bikte hain','Jo item nahi hai: "kal tak mangwa denge" bolo + register mein likho — customer haath se na jaaye','Fixed-price monthly ration kit (2 aur 4 logon ke liye) ka board'],
+rep:['Regulars ki monthly ration list WhatsApp pe lo, pack karke ready rakho','Mahine ke shuru (salary time) mein list walon ko "list bhej dijiye" message','Har mahine khaata time pe clear karne wale ko chhota gift'],
+money:['Roz ke 20 fast items pe rate tight rakho; masale, dry fruit, cosmetics pe margin poora lo','Har hafte expiry list — 1 mahina pehle combo/discount mein nikaalo','Wholesale se mahine mein ek baar bulk + cash = 2–3% sasta'],
+ops:['Har item ka "itna bache to mangwao" level likho — reorder list','Home delivery ke fixed slot (11 baje, 6 baje) — baar baar bhaagna band','Supplier order WhatsApp pe fixed din'],
+ppl:['Delivery boy ko har delivery pe ₹ incentive','Helper ko 20 fast items ki jagah aur rate yaad karwao — owner free','Roz closing pe 5 min hisaab staff ke saath'],
+comp:['Blinkit-Zepto wale roz ke 20 items ka rate check karke barabar rakho','Board: "Khaata · Ghar tak · Badli aasaan" — ye app nahi deta','1 km ke andar 15 min delivery ka promise'],
+season:['Tyohaar se pehle gift hamper / dry-fruit box ki pre-booking','Mausam ka rack: garmi mein cold drinks, monsoon mein snacks-chhata','School khulne pe stationery corner']},
+food:{vis:['Google aur Swiggy/Zomato pe khane ki asli photos — din ki roshni mein','Bahar menu board + "Aaj ka special" chalk board','Aas-paas ke office, PG, hostel mein menu card + WhatsApp number'],
+conv:['Menu chhota karo, top 5 dish ke aage ⭐ — log jaldi decide karte hain','Har order pe 1 add-on puchho: "saath mein lassi/sweet?"','Combo thali round price pe (₹99 / ₹149)'],
+rep:['Table pe card: "5th visit pe dessert free"','Regulars ke liye monthly meal/tiffin pass — paisa advance','Hafte mein ek baar regulars ko "aaj ka special" WhatsApp'],
+money:['Har dish ki costing ek baar nikaalo — sabse kam bachat wali 3 dish ka rate ya portion theek karo','Roz ka bacha khana note karo — 1 hafte mein pata chalega kya kam banana hai','Gas, tel, sabzi ek supplier se fixed rate pe'],
+ops:['Roz ki prep list fix (kitna aata, kitni sabzi) — bacha khana kam','Rush time ke liye token/slip system','Online orders ke liye alag counter ya banda'],
+ppl:['Kitchen staff ka khaana + chhutti fix — tikna aasaan','Waiter ko add-on bechne pe ₹ incentive','Staff ki "special dish" uske naam se menu pe'],
+comp:['Swiggy/Zomato se thoda sasta direct WhatsApp order — commission bachta hai, customer bhi khush','Ek signature dish jo aas-paas kahin nahi milti','Saaf kitchen ki photo/video — ghar jaisa bharosa'],
+season:['Khaali mahino mein office/tiffin subscription','Tyohaar pe special thali/mithai pre-order','Mausam ka menu: garmi mein lassi-juice, sardi mein soup']},
+bakery:{vis:['Custom cake ki photos roz Insta aur Google pe','Showcase mein tez light — cake bahar se chamakne chahiye','School/office ke paas birthday cake ka pamphlet + WhatsApp number'],
+conv:['Counter pe "Aaj ka fresh" board','Cake ke saath combo: candles + topper + snacks','Chhote 1-person pastry/jar cake — chalte chalte bikte hain'],
+rep:['Customers ki birthday list + 1 din pehle "cake book karein?" message','"10 cake pe 1 free" card','Har order ke saath agle order ka chhota coupon'],
+money:['Roz ka bacha maal note karo — production usi hisaab se','Shaam 7 baje ke baad bacha bread/pastry discount pe','Cake ke 3 price level: basic, premium, custom'],
+ops:['Advance order register — kal ka production pehle se tay','Delivery ke fixed slot','Maida, cream ka reorder level'],
+ppl:['Decorator ko custom cake pe incentive','Counter pe line: "candles/topper bhi de doon?"','Shift fix'],
+comp:['"Same day custom cake" — bade brand nahi dete','Eggless / sugar-free alag highlight','Local swaad (mawa cake, khaas mithai) jo chain mein nahi'],
+season:['Office/corporate ka monthly snack order','Diwali gift box, Christmas cake ki pre-booking','Rakhi / Valentine special pack']},
+salon:{vis:['Roz 1 before/after photo Insta aur Google pe','Google listing pe saari services + rate list','Aas-paas ke gym/boutique ke saath tie-up — ek-dusre ke customers'],
+conv:['Wait karte customer ko rate card do — add-on wahin bikta hai','Haircut ke saath har baar puchho: "head massage bhi kar doon?"','Package: haircut + beard + facial ek price pe'],
+rep:['Jaate waqt agli appointment book karo + 3 hafte baad reminder','Membership: 5 haircut ke paise mein 6','Customer ki pasand (style, product) register mein — agli baar wahi'],
+money:['Shampoo/serum counter pe bechna shuru — service ke saath extra kamai','Weekday dopahar ka discount — khaali kursi bhi kamaye','Rate list har saal 5–10% revise'],
+ops:['Appointment WhatsApp pe — wait aur bheed kam','Products ka stock list','Rush time mein ek extra helper'],
+ppl:['Stylist ko service ka % commission — tikta hai','Har stylist ki apni regular customer list','Mahine mein 1 din naya style seekhne ka'],
+comp:['Ek signature service jo aas-paas nahi (hair spa, keratin)','Hygiene dikhao: naya towel, sanitised tools','Ghar pe service ka option (bridal, buzurg)'],
+season:['Shaadi season ki bridal package pre-booking','Off-season mein student/college offer','Tyohaar se pehle "festive look" package']},
+cloth:{vis:['Naye stock ki try-on reels + WhatsApp catalogue','Display window har hafte badlo — log rukte hain','Aas-paas ke tailor/boutique ke saath tie-up'],
+conv:['Trial room aur mirror ki lighting theek karo — kapda wahin bikta hai','"2 lo 10% off" ya complete matching set','Jo nahi bika: size/colour puchh ke register mein likho — wahi mangao'],
+rep:['Purane customers ko "naya stock aaya" WhatsApp photo','Bill pe naam + size note — agli baar personal service','Exchange aasaan rakho — bharosa = wapsi'],
+money:['Season ke end mein bacha stock clearance — paisa naye maal mein','Fast chalne wale size/colour hi zyada mangao','Alteration ka chhota charge'],
+ops:['Stock register size/colour wise','Naye maal ki photo turant WhatsApp catalogue mein','Bheed ke din extra helper'],
+ppl:['Salesman ko bikri ka % incentive','Staff ko 3 styling tips yaad — customer ko suggest kare','Shift aur chhutti fix'],
+comp:['Online jaisa: 7 din exchange + ghar pe trial','Local design aur free alteration — online nahi deta','Customer ka naam yaad, styling help — personal touch'],
+season:['Saal bhar bikne wala maal add karo: party wear, uniform, gifting — season ka intezaar kam','Shaadi/tyohaar se pehle advance booking','Off-season clearance sale ka event']},
+elec:{vis:['Google listing mein "mobile repair near me" + saari services','Bahar board: repair rate + "30 min mein repair"','College/office ke paas pamphlet'],
+conv:['Accessories ka combo counter pe ready','Repair ke saath tempered glass/cover offer','Purana phone exchange offer'],
+rep:['Phone ke saath "free screen-guard change" card','Repair pe 3 mahine warranty card','Customer list + naya model aane pe message'],
+money:['Accessories pe margin zyada — har phone ke saath zaroor','Repair parts ka stock sirf fast-moving','EMI partner se commission'],
+ops:['Repair job card/token — kaunsa phone kab dena','Parts ka reorder list','Pickup-drop ka time slot'],
+ppl:['Technician ko har repair pe incentive','Counter staff ki accessory upsell line','Naye models ki training'],
+comp:['Same-day repair — online/service center nahi deta','Setup + data transfer free','Local warranty, yahin dukaan pe'],
+season:['Exam/admission season pe laptop-tablet offer','Diwali/sale season pe EMI offer','Monsoon mein water-damage repair offer']},
+pharma:{vis:['Society groups mein "dawai ghar tak, 30 min mein"','Google listing pe late/24x7 timing highlight','Aas-paas ke doctor clinics ke saath tie-up'],
+conv:['Brand ke saath sasta generic option bhi batao — bharosa banta hai','Prescription ke saath zaroori add-on suggest (ORS, sanitizer)','Health products (protein, baby care) ka alag rack'],
+rep:['BP/sugar jaisi monthly dawai ki refill reminder list','Regular patients ko monthly home delivery','Loyalty card: har ₹1000 pe ₹20 off'],
+money:['Generic / house brand pe margin zyada — unhe aage rakho','Monthly expiry list — distributor ko time pe return','Health/FMCG products se margin badhao'],
+ops:['Har fast dawai ka reorder level','Billing software mein stock + expiry','Delivery ka fixed time'],
+ppl:['Helper ko delivery pe incentive','Fast dawaiyon ki jagah fix — koi bhi dhoondh sake','Shift fix'],
+comp:['Sirf monthly dawai pe online jitna discount — baaki normal','Turant dawai + pharmacist ki salah — app nahi deta','Counter pe free BP/sugar check'],
+season:['Mahine mein 1 BP-sugar check day','Monsoon/flu season kit','Sardi mein immunity products']},
+gym:{vis:['Members ki transformation reels (unki permission se)','Google listing pe photos + timing + fees','Aas-paas ke office/college mein free trial pass'],
+conv:['Free 3-day trial + pehle din trainer khud mile','Enquiry ke 24 ghante mein follow-up call','3/6/12 month plan — 12 month sabse value wala dikhao'],
+rep:['15 din se na aaye member ko call','Renewal se 10 din pehle reminder + early renewal offer','Mahine mein ek baar body check/progress card'],
+money:['Personal training, diet plan, supplements — extra kamai','Annual plan pe advance cash','Dopahar (khaali time) ka sasta plan'],
+ops:['Attendance register/app','Machines ka maintenance schedule','Peak time pe trainer zyada'],
+ppl:['Trainer ko PT ka % share','Har trainer ki apni member list — renewal uski zimmedari','Certification/training'],
+comp:['Har member ka personal plan — bade gym mein nahi milta','Group class (zumba, HIIT) jo bagal wale mein nahi','Family/couple plan'],
+season:['New Year aur garmi se pehle transformation challenge','Shaadi season ka "fit for wedding" pack','Monsoon mein indoor offer']},
+coach:{vis:['Results/topper ke posters + parents ke WhatsApp groups','Google listing pe parents se reviews','School ke bahar demo class pamphlet'],
+conv:['Free demo class + usi din parent se baat','Sibling discount','Fees installment option'],
+rep:['Har mahine parent ko 1 progress message','Test result WhatsApp pe','Agle saal ke liye early admission discount'],
+money:['Har batch ki khaali seats bharo','Notes / test series alag se','Advance fees pe discount'],
+ops:['Attendance + fees register','Test schedule fix','Teacher ka backup'],
+ppl:['Teacher ko result-based bonus','Har teacher ki batch ownership','Training'],
+comp:['Personal doubt session — bade coaching mein nahi','Chhota batch, har bacche pe dhyan','Parents ke saath monthly meeting'],
+season:['Chhuttiyon mein crash course / summer camp','Board exam se pehle revision batch','Admission season se pehle demo week']},
+service:{vis:['Google listing + kaam ki before/after photos','Bahar rate board','Society groups mein pickup-drop ka message'],
+conv:['Printed rate list — mol-bhaav kam','Turant estimate + delivery date likh ke do','3 kaam ek saath pe discount'],
+rep:['Kaam ke kuch mahine baad service reminder','Regulars ke liye pickup-drop free','Har kaam ke baad "sab theek?" message'],
+money:['Urgent/express kaam pe extra charge','Har kaam ka time note karo — rate usi hisaab se','Material/parts pe margin'],
+ops:['Job card/token — kaunsa kaam kab dena','Kaam ki queue ka board','Material reorder list'],
+ppl:['Karigar ko per-piece incentive','Quality check ek bande ki zimmedari','Training'],
+comp:['Pickup-drop + time pe delivery ki guarantee','Kaam pe warranty','Customer ko naam se jaanna — personal rishta'],
+season:['Khaali mahino mein AMC/plan bechna','Tyohaar/shaadi se pehle advance booking','Mausam ke hisaab se service (garmi se pehle AC, etc.)']}};
+const OM=[[/kirana|grocery|general store|provision|ration|super ?market|mart/i,'kirana'],[/bakery|sweet|mithai|cake|namkeen|halwai/i,'bakery'],[/restaurant|cafe|caf[eé]|dhaba|hotel|tiffin|mess|juice|chai|fast ?food|pani ?puri|chaat|cloud kitchen|cater|pizza|momo/i,'food'],[/salon|parlou?r|spa|beauty|nail|barber/i,'salon'],[/kapd|cloth|boutique|saree|sari|footwear|shoe|fashion|garment|readymade/i,'cloth'],[/mobile|electronic|computer|laptop|appliance/i,'elec'],[/medical|chemist|pharma/i,'pharma'],[/gym|fitness|yoga|dance|zumba|martial/i,'gym'],[/coaching|tuition|classes|academy|institute/i,'coach'],[/tailor|laundry|dry ?clean|garage|car wash|bike service|plumb|electrician|repair|xerox|print/i,'service']];
+const G={vis:{a:['Google Maps pe dukaan dikhti hai? Nahi to listing abhi phone se bana do (10 min); hai to nayi photos + sahi timing + number','Aaj aane wale 10 khush customers se Google review maango — counter pe review ka QR','Bahar ka board 20 meter door se padha jaaye — nahi to pehle yahi'],w:['WhatsApp Business + roz status pe 1 photo/offer','Aas-paas ke 2 alag business (jo competitor nahi) ke saath tie-up'],m:['Insta pe hafte mein 2–3 reels: owner ka chehra + best product','Mahine mein ek "special day" offer — area mein charcha hoti hai']},
+conv:{a:['Rate board lagao — mol-bhaav kam, bharosa zyada','Combo: %C','UPI QR saaf jagah — cash na ho to bhi sale na jaaye'],w:['Jo bina kharide jaaye usse puchho "kya dhoondh rahe the?" — 1 hafta register; jo sabse zyada maanga, wo rakho','Har customer ko 1 add-on suggest karne ki aadat'],m:['Ek cheez/service jo "sirf yahin milti hai" — taaki compare na ho','Bade bill pe EMI / guarantee / trial']},
+rep:{a:['Har bill pe customer ka WhatsApp number — list aaj se shuru','Loyalty card: "5 baar aao, 1 free / ₹ off"','Purane 20 customers ko personal message: "bahut din se aaye nahi"'],w:['WhatsApp broadcast hafte mein sirf 1 baar: naya maal/offer','Kaam/sale ke 3 din baad "sab theek?" message'],m:['Monthly plan / membership: %C','Customer birthday list + us din chhota offer']},
+money:{a:['Sabse zyada bikne wali 10 cheezon pe kitna bachta hai, likho — kam bachat walon pe 3–5% rate badhao','%U','3 mahine se pada maal combo/sale mein nikaalo — paisa ghoomega'],w:['Har fix kharche (rent, bijli, salary) mein 5–10% kaatne ka ek tarika','Supplier se cash/advance pe 2–3% extra discount maango'],m:['Har mahine 1 din hisaab: kya bika, kitna bacha — bas 1 page']},
+ops:{a:['Roz ke 5 kaam jo sirf owner karta hai, likho — ek aaj se kisi aur ko do','1 page ki opening/closing checklist'],w:['Stock/billing ke liye free app (Vyapar/Khatabook) ya register','Billing ya delivery ek fixed bande ki zimmedari'],m:['Bheed ke time 1 part-time helper','Hafte mein aadha din owner ka — naye kaam sochne ke liye']},
+ppl:{a:['Har staff ka kaam 1 line mein likh ke do','Roz 5 min baat: aaj ka target + 1 tip'],w:['Salary ke upar bikri pe 1–2% incentive','Staff ki ek shikayat suno aur turant theek karo — tikna yahin se shuru'],m:['Naye staff ke liye referral bonus','Customer se baat karne ki chhoti training']},
+comp:{a:['Wo pakdo jo online/bada store nahi de sakta: pehchaan, khaata, turant delivery, badli aasaan','WhatsApp pe order + jaldi delivery — "utna hi fast, upar se bharosa"'],w:['Roz ki 20 common cheezon ka rate online jitna — baaki pe normal margin','Regular customers ke liye monthly khaata / delivery list'],m:['Wo cheezein rakho jo online nahi milti: local, fresh, khaas, ya service','Insta/WhatsApp pe dukaan ka chehra dikhao — log insaan se kharidte hain']},
+season:{a:['Season ke customers ki WhatsApp list — khaali mahino mein unhe special offer','Pada hua season ka maal clearance mein nikaalo'],w:['Agle 6 mahino ke chhote mauke likho: school, birthday, mela, shaadi ki dates','Season se pehle advance booking pe discount — cash pehle aata hai'],m:['Khaali mahino mein bulk order: school, office, society','Saal bhar ka calendar — har mahine 1 occasion ka offer']}};
+const PK={vis:1,conv:0,rep:0,money:1,ops:0,ppl:0,comp:0,season:0};
+function sol(b,ty,u){const g=G[b],f=z=>z.replace('%C',T[ty][2]).replace('%U',u?'Udhaar ka rule abhi se: limit + 15 din; sabse purane 5 udhaar walon ko polite reminder + UPI link':'Dukaan ke khaali ghante (jaise dopahar) ke liye alag offer — kharcha wahi, bikri zyada');
+const s=TS[ty]&&TS[ty][b];if(!s)return{a:g.a.map(f),w:g.w.map(f),m:g.m.map(f)};
+return{a:[s[0],s[1],f(g.a[PK[b]])],w:[s[2],f(g.w[0])],m:g.m.map(f)}}
+function effType(d){if(d.ty!=='other'||!d.ot)return d.ty;const h=OM.find(([re])=>re.test(d.ot));return h?h[1]:'other'}
+
+
+let LD;function run(d,keep){LD=d;const et=effType(d),t=T[et],s=d.sl,f=d.fx,m=d.mg||t[1];
+const sc={vis:0,conv:0,rep:0,money:0,ops:0,ppl:0,comp:0,season:0};
+d.pb.forEach(k=>{for(const[x,w]of Object.entries(P[k][1]))sc[x]+=w});
+K.forEach(([re,x,w])=>{if(re.test(d.rm))sc[x]+=w});
+const est=s?s*m-f:null;
+if(s&&f&&est<s*.05)sc.money+=2;
+let rk=Object.entries(sc).sort((a,b)=>b[1]-a[1]).filter(x=>x[1]>0).map(x=>x[0]);
+if(!rk.length)rk=['conv','rep'];if(rk.length<2)rk.push(rk[0]==='conv'?'rep':'conv');
+d.top=B[rk[0]][0];const u=d.pb.includes('udh')||/udh?aa?r|baa?ki|credit/i.test(d.rm),top=rk[0],g1=s?gainOf(top,s,m,f):0,g2=s?gainOf(rk[1],s,m,f):0,gain=g1;d.gain=Math.round(g1+g2);
+const ask={vis:['Naye customer aapke paas kaise aate hain?','Google pe "near me" search karke dekho — dukaan dikhti hai?'],conv:['Jo bina kharide jaate hain, wo kya maangte the?','Aapka sabse zyada bikne wala item kaunsa hai?'],rep:['Aapke 10 pakke customer kaun hain, aur wo kyun aate hain?','Purane customer ko aakhri baar kab message kiya?'],money:['Sabse zyada kya bikta hai, aur usme kitna bachta hai?','Sabse bada kharcha kaunsa hai?'],ops:['Aap ek din na aao to kya ruk jaata hai?','Maal khatam hone ka pata kaise chalta hai?'],ppl:['Pichla staff kyun chhod ke gaya?','Staff ko salary ke alawa kya milta hai?'],comp:['Customer kis cheez ke liye bolta hai ki online/wahan sasta hai?','Aap kya dete ho jo online wala nahi de sakta?'],season:['Saal ke kaunse mahine sabse khaali jaate hain?','Season wale customers ke number aapke paas hain?']}[top];
+let h=`<div class="card"><h2>Checkup · ${esc(d.nm)||'Business'}${d.ar?' · '+esc(d.ar):''}${d.ty==='other'&&d.ot?' · '+esc(d.ot)+(et!=='other'?' (≈ '+T[et][0].split(' /')[0]+')':' (general solutions)'):''}</h2>
+${rk.slice(0,3).map((x,i)=>`<span class="tag" style="${i?'opacity:.5':''}">${i?'':'#1 '}${B[x][0]}</span>`).join('')}
+<div class="big">${B[top][1]}</div>
+${s?`<div class="kpis"><div class="kpi"><small>Mahine ka dhanda</small><b>${R(s)}</b></div><div class="kpi tap" onclick="$('cb').classList.toggle('hide')"><small>Andaazan bachat${f?'':' (kharcha nahi diya)'} ⓘ</small><b style="${est<0?'color:#b91c1c':''}">${R(est)}</b></div></div>
+<div id="cb" class="calc hide"><b>Bachat ka hisaab</b><br>
+Margin <input id="mgi" type="number" inputmode="decimal" value="${+(m*100).toFixed(1)}" style="width:80px;padding:6px;display:inline-block" onclick="event.stopPropagation()"> % <span class="mut">(${t[0]} ka typical ${Math.round(t[1]*100)}% — owner jo bole wo daalo)</span><br>1. Dhanda ${R(s)} × ${+(m*100).toFixed(1)}% (maal ki keemat nikaal ke ₹100 mein ₹${+(m*100).toFixed(1)} bachte hain) = <b>${R(s*m)}</b><br>
+2. Usme se mahine ka fix kharcha ${R(f)} ghatao = <b>${R(est)}</b><br>
+<span class="mut">Dhyan rahe: kharche mein maal ki kharid shamil nahi honi chahiye, warna maal do baar katega aur bachat galat (minus mein bhi) aayegi. ${d.mg?'Margin owner ke bataye hisaab se hai.':'Margin typical hai, is dukaan ka asli margin alag ho sakta hai.'}</span></div>`:''}
+${s?`<div class="win">Dono plan milake andaazan <b style="color:var(--acc)">+${R(g1+g2)} har mahine</b> = <b>${R((g1+g2)*12)} saal ka</b> extra bachat.<br><span class="mut">Har plan ka hisaab neeche uske card mein tap karke dekho.</span></div>`:''}</div>`;
+rk.slice(0,2).forEach((x,i)=>{const o=sol(x,et,u);h+=`<div class="card"><h2>${i?'Saath mein':'Plan'} · ${B[x][0]}</h2>
+${s?calcHtml(x,s,m,f,i?g2:g1,'cg'+i):''}<div class="tier">Aaj se (bina kharche)</div><ol>${o.a.map(z=>`<li>${z}</li>`).join('')}</ol>
+<div class="tier">Is hafte</div><ol>${o.w.map(z=>`<li>${z}</li>`).join('')}</ol>
+${i?'':`<div class="tier">1 mahine mein</div><ol>${o.m.map(z=>`<li>${z}</li>`).join('')}</ol>`}</div>`});
+h+=`<div class="card priv${owner?' hide':''}"><h2>Mere notes</h2>
+<p><b>Owner se aur poocho (solution ko unki dukaan pe fit karne ke liye):</b></p><ul>${ask.map(z=>`<li>${z}</li>`).join('')}</ul>
+<p><b>Jaate waqt:</b></p><ul><li>"2 hafte baad aake dekhta hoon kitna fark pada"</li><li>"Aapke jaan-pehchaan mein koi owner jisko help chahiye?"</li></ul></div>
+<button class="btn s" id="cp">Owner ko WhatsApp ke liye copy karo</button>`;
+$('out').innerHTML=h;if(keep){$('cb').classList.remove('hide')}else $('out').scrollIntoView({behavior:'smooth'});
+const mi=$('mgi');if(mi)mi.onchange=()=>{const v=parseFloat(mi.value);LD.mg=v>0&&v<100?v/100:0;run(LD,1);try{const l=store();if(l[0]&&l[0].t===LD.t){l[0].mg=LD.mg;localStorage.setItem('bizcheck2',JSON.stringify(l))}}catch(e){}};
+const o=sol(top,et,u);
+const txt=`*VyaparCheck${d.nm?' — '+d.nm:''}*\n\nMain baat: ${B[top][1]}\n${gain?`Mauka: ${LV[top][0]} → +${R(gain)} har mahine\n`:''}\n*Aaj se:*\n${o.a.map((z,i)=>`${i+1}. ${z}`).join('\n')}\n\n*Is hafte:*\n${o.w.map((z,i)=>`${i+1}. ${z}`).join('\n')}\n\n2 hafte baad milke dekhte hain kitna fark pada 👍`;
+$('cp').onclick=()=>copy(txt);}
+function esc(s){return (s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}
+function copy(t){const ok=()=>{$('cp').textContent='Copy ho gaya ✓'};const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(e){}a.remove()};
+try{navigator.clipboard.writeText(t).then(ok,fb)}catch(e){fb()}}
+function read(){return{nm:$('nm').value.trim(),ar:$('ar').value.trim(),ty:$('ty').value,ot:$('ot').value.trim(),sl:parseFloat($('sl').value)||0,fx:parseFloat($('fx').value)||0,rm:$('rm').value,pb:[...document.querySelectorAll('#pb .chip.on')].map(c=>c.dataset.k)}}
+function fill(d){['nm','ar','ty','rm','ot'].forEach(i=>$(i).value=d[i]||'');$('otw').classList.toggle('hide',d.ty!=='other');$('sl').value=d.sl||'';$('fx').value=d.fx||'';document.querySelectorAll('#pb .chip').forEach(c=>c.classList.toggle('on',d.pb.includes(c.dataset.k)))}
+function store(){try{return JSON.parse(localStorage.getItem('bizcheck2')||'[]')}catch(e){return[]}}
+$('fm').onsubmit=e=>{e.preventDefault();return false};
+$('go').onclick=()=>{const d=read();run(d);d.t=new Date().toLocaleString('en-IN');const l=store();l.unshift(d);try{localStorage.setItem('bizcheck2',JSON.stringify(l.slice(0,100)))}catch(e){}};
+function save(l){try{localStorage.setItem('bizcheck2',JSON.stringify(l))}catch(e){}}
+function showHist(){const l=store();$('hl').innerHTML=l.length?l.map((d,i)=>`<div><span>${esc(d.nm)||'—'} ${d.ar?'· '+esc(d.ar):''}<br><span class="mut">${d.t}</span></span><span style="white-space:nowrap"><button data-i="${i}">Kholo</button> <button data-d="${i}" style="color:#b91c1c">Delete</button></span></div>`).join(''):'<p class="mut">Abhi kuch nahi.</p>';
+$('hl').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{const d=l[b.dataset.i];fill(d);run(d);$('hist').classList.add('hide')});
+$('hl').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(b.textContent!=='Pakka?'){b.textContent='Pakka?';return}l.splice(b.dataset.d,1);save(l);showHist()})}
+$('hb').onclick=()=>{$('hist').classList.toggle('hide');showHist()};
+$('da').onclick=()=>{const b=$('da');if(!store().length)return;if(b.textContent!=='Pakka? Sab hat jayega'){b.textContent='Pakka? Sab hat jayega';setTimeout(()=>b.textContent='Sab delete',4000);return}save([]);b.textContent='Sab delete';showHist()};
+$('ex').onclick=()=>{const l=store();if(!l.length)return;const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+const rows=[['Date','Naam','Area','Type','Business (other)','Mahine ka dhanda','Fix kharcha','Margin %','Problems','Note','Main category','Andaazan fayda/mahina']].concat(l.map(d=>[d.t,d.nm,d.ar,T[d.ty]?T[d.ty][0]:d.ty,d.ot,d.sl||'',d.fx||'',d.mg?Math.round(d.mg*1000)/10:'',(d.pb||[]).map(k=>P[k]?P[k][0]:k).join('; '),d.rm,d.top,d.gain||'']));
+const csv='\ufeff'+rows.map(r=>r.map(q).join(',')).join('\n'),fn='vyaparcheck-records.csv';
+const dl=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=fn;document.body.appendChild(a);a.click();a.remove()};
+try{const file=new File([csv],fn,{type:'text/csv'});if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file]}).catch(()=>{});return}}catch(e){}dl()};
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
