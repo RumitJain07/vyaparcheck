@@ -19,6 +19,7 @@ input::placeholder,textarea::placeholder{color:#a3a09a;-webkit-text-fill-color:#
 .big{font-size:19px;font-weight:700;color:var(--warn);margin:6px 0}
 .win{background:#fff7e8;border-radius:10px;padding:10px 12px;margin-top:10px}
 .tap{cursor:pointer}.calc{background:#f3f2ee;border-radius:10px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.6}
+.tcat{margin-bottom:10px}.tbody{padding:8px 0 2px 10px;border-left:2px solid var(--acc2);margin-top:6px}.tbody input{margin-top:8px}.chip.cat{font-weight:600}
 .tag{display:inline-block;background:var(--ink);color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;margin:0 4px 4px 0}
 ol,ul{padding-left:20px;margin:6px 0}li{margin-bottom:6px}
 .tier{font-weight:700;margin-top:12px;color:var(--acc)}
@@ -39,7 +40,7 @@ ol,ul{padding-left:20px;margin:6px 0}li{margin-bottom:6px}
 <div><label>Mahine ka fix kharcha ₹<br><span class="mut">sirf rent, salary, bijli (maal nahi)</span></label><input id="fx" type="number" inputmode="numeric" placeholder="60,000"></div></div>
 <p class="mut" style="margin:8px 0 0">Khaali chhodo to bhi chalega, phir sirf solutions aayenge.</p></div>
 <div class="card"><h2>Owner ki problem (jitni lage, tap karo)</h2><div class="chips" id="pb"></div></div>
-<div class="card"><h2>Owner ne pehle kya try kiya (tap karo)</h2><div class="chips" id="tr"></div><input id="tt" placeholder="Aur kuch try kiya? jaise pamphlet baante, Insta page banaya" style="margin-top:10px"></div>
+<div class="card"><h2>Owner ne pehle kya try kiya (tap karo)</h2><p class="mut" style="margin:0 0 8px">Category tap karo, phir jo kiya wo chuno ya likho</p><div id="tr"></div></div>
 <div class="card"><h2>Mera note</h2><textarea id="rm" rows="3" placeholder="Jo dekha / suna — dukaan gali ke andar hai, bagal mein D-Mart khula, staff jaldi chhod deta..."></textarea></div>
 <button class="btn" type="button" id="go">Checkup karo</button>
 </form>
@@ -71,8 +72,8 @@ const $=i=>document.getElementById(i),R=n=>(n<0?'-₹':'₹')+Math.abs(Math.roun
 $('ty').innerHTML=Object.entries(T).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join('');
 $('ty').onchange=()=>$('otw').classList.toggle('hide',$('ty').value!=='other');
 $('pb').innerHTML=Object.entries(P).map(([k,v])=>`<span class="chip" data-k="${k}">${v[0]}</span>`).join('');
-document.querySelectorAll('#pb .chip').forEach(c=>c.onclick=()=>{c.classList.toggle('on');renderTried()});
-$('tr').onclick=e=>{const c=e.target.closest('.chip');if(c)c.classList.toggle('on')};
+document.querySelectorAll('#pb .chip').forEach(c=>c.onclick=()=>c.classList.toggle('on'));
+$('tr').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;c.classList.toggle('on');if(c.classList.contains('cat'))c.parentNode.querySelector('.tbody').classList.toggle('hide',!c.classList.contains('on'))};
 // tried catalog per problem bucket: [id, label, exclude-regex for solutions, why it didn't fully work, keyword regex for "aur kuch" text]
 const TR={
 vis:[['pamph','Pamphlet / banner baante',/pamphlet/i,'Ek baar ka pamphlet log padh ke phenk dete hain — baar-baar dikhe aur saath mein koi wajah/offer ho, tabhi yaad rehta hai',/pamphlet|banner|parcha|poster/i],
@@ -109,10 +110,16 @@ season:[['off','Off-season mein sale lagayi',/clearance/i,'Sirf discount, aane k
 ['newp','Naya product rakha',/Saal bhar bikne|add karo/i,'Naya maal rakha par purane customers ko bataya hi nahi',/naya product|naya maal/i],
 ['adv','Advance booking li',/advance booking|pre-booking|pre-order/i,'Booking karne pe customer ko koi fayda nahi tha',/advance|booking/i]]};
 const TRA=Object.values(TR).flat();
-function renderTried(keep){const bs=[];document.querySelectorAll('#pb .chip.on').forEach(c=>Object.keys(P[c.dataset.k][1]).forEach(b=>{if(!bs.includes(b))bs.push(b)}));
-if(!bs.length)['vis','conv','rep'].forEach(b=>bs.push(b));
-const prev=keep||[...document.querySelectorAll('#tr .chip.on')].map(c=>c.dataset.k),seen={};
-$('tr').innerHTML=bs.flatMap(b=>TR[b]).filter(x=>!seen[x[0]]&&(seen[x[0]]=1)).map(x=>`<span class="chip${prev.includes(x[0])?' on':''}" data-k="${x[0]}">${x[1]}</span>`).join('')}
+const TRX={board:/hoarding|flex|banner/i,pamph:/newspaper|akhbar|leaflet/i,ads:/radio|cable|auto|rickshaw|influencer/i,loyal:/reward|gift|coupon|stamp|visit|free/i,inc:/reward|gift|bonus/i,deliv:/ghar tak|home/i};
+const TC=[['mkt','Marketing / Visibility',['pamph','gmb','insta','wa','board','ads'],'Marketing ek-do baar hua, regular nahi; aur saath mein aane ki koi wajah (offer ya khaas cheez) nahi thi'],
+['price','Discount / Pricing',['disc','ratecut','hike','combo','match','off'],'Daam se kheloge to bagal wala bhi khelega — fark tab padta hai jab daam ke saath value bhi dikhe'],
+['reward','Customer Rewards',['loyal','broad','call','nums','adv'],'Reward tha par customer ko yaad nahi dilaya, ya milne mein bahut der thi'],
+['disp','Dukaan / Display',['disp','newp'],'Dukaan sundar hui, par customer ke liye decide karna aasaan nahi hua'],
+['staff','Staff Incentive',['pitch','sal','new','inc','strict','helper'],'Staff ko kaam aur uska fayda dono clear nahi the — roz dikhne wala target aur reward chahiye'],
+['online','Delivery / Online',['deliv','app2'],'Online/delivery hai par logon ko pata nahi, ya service time pe nahi mili'],
+['sys','System / Stock',['app','check','cost','udh','dead','supp'],'System banaya par roz chalane ki zimmedari kisi ek ki nahi thi']];
+const byId=id=>TRA.find(x=>x[0]===id),kwHit=(x,t)=>x[4].test(t)||!!(TRX[x[0]]&&TRX[x[0]].test(t));
+function renderTried(sel,tc){sel=sel||[];tc=tc||{};$('tr').innerHTML=TC.map(([k,l,ids])=>{const open=ids.some(i=>sel.includes(i))||tc[k];return `<div class="tcat" data-c="${k}"><span class="chip cat${open?' on':''}">${l}</span><div class="tbody${open?'':' hide'}"><div class="chips">${ids.map(i=>`<span class="chip it${sel.includes(i)?' on':''}" data-k="${i}">${byId(i)[1]}</span>`).join('')}</div><input class="tct" placeholder="${l} mein aur kya kiya? (jaise hoarding lagaya)" value="${esc(tc[k]||'')}"></div></div>`}).join('')}
 renderTried();
 let owner=false;$('ob').onclick=()=>{owner=!owner;$('ob').textContent=owner?'Meri view':'Owner view';document.querySelectorAll('.priv').forEach(e=>e.classList.toggle('hide',owner))};
 
@@ -224,7 +231,7 @@ const est=s?s*m-f:null;
 if(s&&f&&est<s*.05)sc.money+=2;
 let rk=Object.entries(sc).sort((a,b)=>b[1]-a[1]).filter(x=>x[1]>0).map(x=>x[0]);
 if(!rk.length)rk=['conv','rep'];if(rk.length<2)rk.push(rk[0]==='conv'?'rep':'conv');
-const tried=TRA.filter(x=>(d.tr||[]).includes(x[0])||(d.tt&&x[4].test(d.tt))),ex=tried.map(x=>x[2]).filter(Boolean),ttMatched=d.tt&&TRA.some(x=>x[4].test(d.tt));
+const tcs=d.tc||{},tried=TRA.filter(x=>(d.tr||[]).includes(x[0])||(d.tt&&x[4].test(d.tt))||TC.some(([k,,ids])=>tcs[k]&&ids.includes(x[0])&&kwHit(x,tcs[k]))),unm=TC.filter(([k,,ids])=>tcs[k]&&!ids.some(i=>kwHit(byId(i),tcs[k]))),ex=tried.map(x=>x[2]).filter(Boolean),ttMatched=d.tt&&TRA.some(x=>x[4].test(d.tt));
 d.top=B[rk[0]][0];const u=d.pb.includes('udh')||/udh?aa?r|baa?ki|credit/i.test(d.rm),top=rk[0],g1=s?gainOf(top,s,m,f):0,g2=s?gainOf(rk[1],s,m,f):0,gain=g1;d.gain=Math.round(g1+g2);
 const ask={vis:['Naye customer aapke paas kaise aate hain?','Google pe "near me" search karke dekho — dukaan dikhti hai?'],conv:['Jo bina kharide jaate hain, wo kya maangte the?','Aapka sabse zyada bikne wala item kaunsa hai?'],rep:['Aapke 10 pakke customer kaun hain, aur wo kyun aate hain?','Purane customer ko aakhri baar kab message kiya?'],money:['Sabse zyada kya bikta hai, aur usme kitna bachta hai?','Sabse bada kharcha kaunsa hai?'],ops:['Aap ek din na aao to kya ruk jaata hai?','Maal khatam hone ka pata kaise chalta hai?'],ppl:['Pichla staff kyun chhod ke gaya?','Staff ko salary ke alawa kya milta hai?'],comp:['Customer kis cheez ke liye bolta hai ki online/wahan sasta hai?','Aap kya dete ho jo online wala nahi de sakta?'],season:['Saal ke kaunse mahine sabse khaali jaate hain?','Season wale customers ke number aapke paas hain?']}[top];
 let h=`<div class="card"><h2>Checkup · ${esc(d.nm)||'Business'}${d.ar?' · '+esc(d.ar):''}${d.ty==='other'&&d.ot?' · '+esc(d.ot)+(et!=='other'?' (≈ '+T[et][0].split(' /')[0]+')':' (general solutions)'):''}</h2>
@@ -240,7 +247,7 @@ rk.slice(0,2).forEach((x,i)=>{const o=sol(x,et,u,ex);h+=`<div class="card"><h2>$
 ${s?calcHtml(x,s,m,f,i?g2:g1,'cg'+i):''}<div class="tier">Aaj se (bina kharche)</div><ol>${o.a.map(z=>`<li>${z}</li>`).join('')}</ol>
 <div class="tier">Is hafte</div><ol>${o.w.map(z=>`<li>${z}</li>`).join('')}</ol>
 ${i?'':`<div class="tier">1 mahine mein</div><ol>${o.m.map(z=>`<li>${z}</li>`).join('')}</ol>`}</div>`});
-if(tried.length||d.tt)h+=`<div class="card"><h2>Jo pehle try kiya — poora kaam kyun nahi kiya</h2><ul>${tried.map(x=>`<li><b>${x[1]}:</b> ${x[3]}</li>`).join('')}${d.tt&&!ttMatched?`<li><b>${esc(d.tt)}:</b> owner se poocho — kitne din kiya, kaise kiya, aur kya result aaya? Aksar ek-do baar karke chhod dete hain, isliye fark nahi dikhta.</li>`:''}</ul><p class="mut" style="margin:6px 0 0">Upar ke plan mein ye cheezein dobara nahi hain — sirf naye kaam.</p></div>`;
+if(tried.length||d.tt||unm.length)h+=`<div class="card"><h2>Jo pehle try kiya — poora kaam kyun nahi kiya</h2><ul>${tried.map(x=>`<li><b>${x[1]}:</b> ${x[3]}</li>`).join('')}${d.tt&&!ttMatched?`<li><b>${esc(d.tt)}:</b> owner se poocho — kitne din kiya, kaise kiya, aur kya result aaya? Aksar ek-do baar karke chhod dete hain, isliye fark nahi dikhta.</li>`:''}${unm.map(([k,l,,why])=>`<li><b>${l}: ${esc(tcs[k])}</b> — ${why}. Owner se poocho kitne din kiya aur kya result aaya.</li>`).join('')}</ul><p class="mut" style="margin:6px 0 0">Upar ke plan mein ye cheezein dobara nahi hain — sirf naye kaam.</p></div>`;
 h+=`<div class="card priv${owner?' hide':''}"><h2>Mere notes</h2>
 <p><b>Owner se aur poocho (solution ko unki dukaan pe fit karne ke liye):</b></p><ul>${ask.map(z=>`<li>${z}</li>`).join('')}</ul>
 <p><b>Jaate waqt:</b></p><ul><li>"2 hafte baad aake dekhta hoon kitna fark pada"</li><li>"Aapke jaan-pehchaan mein koi owner jisko help chahiye?"</li></ul></div>
@@ -253,8 +260,8 @@ $('cp').onclick=()=>copy(txt);}
 function esc(s){return (s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}
 function copy(t){const ok=()=>{$('cp').textContent='Copy ho gaya ✓'};const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(e){}a.remove()};
 try{navigator.clipboard.writeText(t).then(ok,fb)}catch(e){fb()}}
-function read(){return{nm:$('nm').value.trim(),ar:$('ar').value.trim(),ty:$('ty').value,ot:$('ot').value.trim(),sl:parseFloat($('sl').value)||0,fx:parseFloat($('fx').value)||0,rm:$('rm').value,tt:$('tt').value.trim(),tr:[...document.querySelectorAll('#tr .chip.on')].map(c=>c.dataset.k),pb:[...document.querySelectorAll('#pb .chip.on')].map(c=>c.dataset.k)}}
-function fill(d){['nm','ar','ty','rm','ot'].forEach(i=>$(i).value=d[i]||'');$('otw').classList.toggle('hide',d.ty!=='other');$('sl').value=d.sl||'';$('fx').value=d.fx||'';document.querySelectorAll('#pb .chip').forEach(c=>c.classList.toggle('on',d.pb.includes(c.dataset.k)));renderTried(d.tr||[]);$('tt').value=d.tt||''}
+function read(){return{nm:$('nm').value.trim(),ar:$('ar').value.trim(),ty:$('ty').value,ot:$('ot').value.trim(),sl:parseFloat($('sl').value)||0,fx:parseFloat($('fx').value)||0,rm:$('rm').value,tr:[...document.querySelectorAll('#tr .chip.it.on')].map(c=>c.dataset.k),tc:Object.fromEntries([...document.querySelectorAll('#tr .tcat')].map(e=>[e.dataset.c,e.querySelector('.tct').value.trim()]).filter(x=>x[1])),pb:[...document.querySelectorAll('#pb .chip.on')].map(c=>c.dataset.k)}}
+function fill(d){['nm','ar','ty','rm','ot'].forEach(i=>$(i).value=d[i]||'');$('otw').classList.toggle('hide',d.ty!=='other');$('sl').value=d.sl||'';$('fx').value=d.fx||'';document.querySelectorAll('#pb .chip').forEach(c=>c.classList.toggle('on',d.pb.includes(c.dataset.k)));renderTried(d.tr||[],d.tc||{})}
 function store(){try{return JSON.parse(localStorage.getItem('bizcheck2')||'[]')}catch(e){return[]}}
 $('fm').onsubmit=e=>{e.preventDefault();return false};
 $('go').onclick=()=>{const d=read();run(d);d.t=new Date().toLocaleString('en-IN');const l=store();l.unshift(d);try{localStorage.setItem('bizcheck2',JSON.stringify(l.slice(0,100)))}catch(e){}};
@@ -265,7 +272,7 @@ $('hl').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(b.textContent!
 $('hb').onclick=()=>{$('hist').classList.toggle('hide');showHist()};
 $('da').onclick=()=>{const b=$('da');if(!store().length)return;if(b.textContent!=='Pakka? Sab hat jayega'){b.textContent='Pakka? Sab hat jayega';setTimeout(()=>b.textContent='Sab delete',4000);return}save([]);b.textContent='Sab delete';showHist()};
 $('ex').onclick=()=>{const l=store();if(!l.length)return;const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-const rows=[['Date','Naam','Area','Type','Business (other)','Mahine ka dhanda','Fix kharcha','Margin %','Problems','Pehle try kiya','Note','Main category','Andaazan fayda/mahina']].concat(l.map(d=>[d.t,d.nm,d.ar,T[d.ty]?T[d.ty][0]:d.ty,d.ot,d.sl||'',d.fx||'',d.mg?Math.round(d.mg*1000)/10:'',(d.pb||[]).map(k=>P[k]?P[k][0]:k).join('; '),(d.tr||[]).map(k=>{const x=TRA.find(y=>y[0]===k);return x?x[1]:k}).concat(d.tt?[d.tt]:[]).join('; '),d.rm,d.top,d.gain||'']));
+const rows=[['Date','Naam','Area','Type','Business (other)','Mahine ka dhanda','Fix kharcha','Margin %','Problems','Pehle try kiya','Note','Main category','Andaazan fayda/mahina']].concat(l.map(d=>[d.t,d.nm,d.ar,T[d.ty]?T[d.ty][0]:d.ty,d.ot,d.sl||'',d.fx||'',d.mg?Math.round(d.mg*1000)/10:'',(d.pb||[]).map(k=>P[k]?P[k][0]:k).join('; '),(d.tr||[]).map(k=>{const x=TRA.find(y=>y[0]===k);return x?x[1]:k}).concat(d.tt?[d.tt]:[]).concat(Object.entries(d.tc||{}).map(([k,v])=>{const c=TC.find(x=>x[0]===k);return (c?c[1]:k)+': '+v})).join('; '),d.rm,d.top,d.gain||'']));
 const csv='\ufeff'+rows.map(r=>r.map(q).join(',')).join('\n'),fn='vyaparcheck-records.csv';
 const dl=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=fn;document.body.appendChild(a);a.click();a.remove()};
 try{const file=new File([csv],fn,{type:'text/csv'});if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file]}).catch(()=>{});return}}catch(e){}dl()};
