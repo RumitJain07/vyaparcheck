@@ -39,6 +39,7 @@ ol,ul{padding-left:20px;margin:6px 0}li{margin-bottom:6px}
 <div><label>Mahine ka fix kharcha ₹<br><span class="mut">sirf rent, salary, bijli (maal nahi)</span></label><input id="fx" type="number" inputmode="numeric" placeholder="60,000"></div></div>
 <p class="mut" style="margin:8px 0 0">Khaali chhodo to bhi chalega, phir sirf solutions aayenge.</p></div>
 <div class="card"><h2>Owner ki problem (jitni lage, tap karo)</h2><div class="chips" id="pb"></div></div>
+<div class="card"><h2>Owner ne pehle kya try kiya (tap karo)</h2><div class="chips" id="tr"></div><input id="tt" placeholder="Aur kuch try kiya? jaise pamphlet baante, Insta page banaya" style="margin-top:10px"></div>
 <div class="card"><h2>Mera note</h2><textarea id="rm" rows="3" placeholder="Jo dekha / suna — dukaan gali ke andar hai, bagal mein D-Mart khula, staff jaldi chhod deta..."></textarea></div>
 <button class="btn" type="button" id="go">Checkup karo</button>
 </form>
@@ -70,7 +71,49 @@ const $=i=>document.getElementById(i),R=n=>(n<0?'-₹':'₹')+Math.abs(Math.roun
 $('ty').innerHTML=Object.entries(T).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join('');
 $('ty').onchange=()=>$('otw').classList.toggle('hide',$('ty').value!=='other');
 $('pb').innerHTML=Object.entries(P).map(([k,v])=>`<span class="chip" data-k="${k}">${v[0]}</span>`).join('');
-document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>c.classList.toggle('on'));
+document.querySelectorAll('#pb .chip').forEach(c=>c.onclick=()=>{c.classList.toggle('on');renderTried()});
+$('tr').onclick=e=>{const c=e.target.closest('.chip');if(c)c.classList.toggle('on')};
+// tried catalog per problem bucket: [id, label, exclude-regex for solutions, why it didn't fully work, keyword regex for "aur kuch" text]
+const TR={
+vis:[['pamph','Pamphlet / banner baante',/pamphlet/i,'Ek baar ka pamphlet log padh ke phenk dete hain — baar-baar dikhe aur saath mein koi wajah/offer ho, tabhi yaad rehta hai',/pamphlet|banner|parcha|poster/i],
+['gmb','Google listing bana li',/listing abhi|Google Maps pe dukaan|Google listing mein|Google listing pe saari|Google listing \+/i,'Listing hai par photos, reviews aur timing update nahi — isliye "near me" search mein upar nahi aati',/google|map|listing/i],
+['insta','Insta / Facebook page banaya',/insta|reels/i,'Page pe sirf product ki photos, owner ka chehra/kahani nahi — log insaan se judte hain; aur posting regular nahi rahi',/insta|facebook|fb|page|reel/i],
+['wa','WhatsApp status / group',/WhatsApp Business|status pe|WhatsApp groups|Society groups/i,'Roz wahi offer forward karne se log mute kar dete hain — personal aur kabhi-kabhi hona chahiye',/whatsapp|status|group/i],
+['board','Naya board lagaya',/board 20 meter|bada board|menu board|Bahar board|rate board|Bahar rate/i,'Board pe sirf naam hai — kya milta hai aur kyun aaye, wo nahi likha',/board|signboard/i],
+['ads','Paid ads / influencer',/collab|influencer/i,'Bina target area aur bina offer ke ad se log aate nahi; aaye to dukaan pe wahi experience nahi mila',/\bad\b|ads|influencer|promotion|sponsor/i]],
+conv:[['disc','Discount / sale diya',/% off|discount/i,'Discount se mol-bhaav wale customer aate hain aur margin katta hai — sale khatam, customer bhi khatam',/discount|sale|off\b/i],
+['ratecut','Rate kam kiya',null,'Rate kam karne se bikri thodi badhti hai par bachat zyada ghatti hai — aur bagal wala bhi kam kar deta hai',/rate kam|sasta kiya|price kam/i],
+['disp','Display / dukaan sajayi',/display|lighting|showcase|rack|Trial room/i,'Sajavat hui, par best-seller aur rate customer ke saamne nahi — decide karne mein madad nahi hui',/display|sajaya|sajavat|light|interior/i],
+['combo','Combo / package banaya',/combo|package/i,'Combo mein wo cheezein thi jo log saath nahi lete, ya price clear/round nahi tha',/combo|package|pack/i],
+['pitch','Staff ko bechna sikhaya',/add-on|upsell|pitch|puchho/i,'Ek baar bola, roz follow nahi hua — aur bechne pe staff ko kuch milta nahi tha',/sikhaya|training|pitch|upsell/i]],
+rep:[['loyal','Loyalty card / points',/loyalty|card|membership/i,'Card diya par yaad nahi dilaya, aur reward bahut door tha — 3–5 visit mein milna chahiye',/loyalty|card|point|membership/i],
+['broad','WhatsApp pe offers bheje',/broadcast/i,'Sabko ek jaisa message, bahut baar — personal nahi laga, isliye ignore hua',/broadcast|message bheje|offer bheje/i],
+['call','Purane customers ko call kiya',/Purane 20|personal message|ko call/i,'Sirf "aaiye" bola, aane ki koi wajah ya khaas cheez nahi di',/call kiya|phone kiya|purane customer/i],
+['nums','Customer numbers save kiye',/WhatsApp number — list|ka WhatsApp number/i,'Numbers save hain par unka use nahi hua — list hai, system nahi',/number save|contact save|numbers/i]],
+money:[['hike','Rate badhaye',/rate badhao|Rate list har saal/i,'Sab cheezon pe ek saath badhaya to customer ko dikha — roz ki cheezon pe nahi, baaki pe badhana tha',/rate badha|price badha/i],
+['cost','Kharcha kam kiya',/fix kharche|kharche mein|Har kharche/i,'Staff ya quality kaati to bikri giri — wahi kharcha kaato jo customer ko nahi dikhta',/kharcha kam|cost cut|staff kam/i],
+['udh','Udhaar band / limit kiya',/Udhaar ka rule/i,'Achanak band kiya to regular customer naraz hue; limit ke saath reminder system nahi tha',/udh?aa?r|credit/i],
+['dead','Purana maal sale mein nikala',/pada maal|pada hua|clearance|bacha /i,'Sirf discount diya, combo mein nahi lagaya — isliye phir bhi pada raha',/purana maal|dead stock|clearance/i],
+['supp','Supplier se rate negotiate kiya',/supplier|wholesale/i,'Bina cash ya volume ke baat ki — supplier ko kuch fayda nahi dikha',/supplier|wholesale|distributor/i]],
+ops:[['app','Billing / stock app li',/app \(|app\)|register|software/i,'App li par roz entry ki aadat nahi bani — ek bande ki zimmedari honi chahiye',/app|software|register/i],
+['helper','Helper rakha',/helper/i,'Helper ko kaam clear nahi diya, owner sab khud karta raha',/helper|ladka rakha/i],
+['check','Checklist / list banayi',/checklist|prep list|list fix|reorder/i,'Shuru mein likha, phir chhoot gaya — roz dekhne ki aadat aur zimmedari nahi thi',/checklist|list/i]],
+ppl:[['sal','Salary badhayi',null,'Sirf salary se log nahi tikte — respect, clear kaam aur roz dikhne wala incentive chahiye',/salary/i],
+['new','Naya staff rakha',/referral bonus|Naye staff/i,'Problem insaan ki nahi, system ki thi — naya bhi waise hi chhod gaya',/naya staff|replace|badla/i],
+['inc','Incentive diya',/incentive|commission|bonus|% share/i,'Incentive tha par target clear nahi, ya mahine ke end mein mila — roz/hafte dikhna chahiye',/incentive|bonus|commission/i],
+['strict','Strict hokar dekha',null,'Daant se kaam to hota hai par log tikte nahi',/strict|daant/i]],
+comp:[['match','Online jitna rate kiya',/rate online|rate check/i,'Har cheez pe match kiya to margin khatam — sirf roz ki 20 cheezon pe karna tha',/online rate|match/i],
+['deliv','Home delivery shuru ki',/delivery/i,'Delivery hai par logon ko pata nahi, ya time pe nahi pahunchi',/delivery/i],
+['app2','Online app pe list kiya',/Swiggy\/Zomato se thoda sasta/i,'App pe commission aur kai dukaane — wahan sirf rate pe compare hota hai',/swiggy|zomato|blinkit|amazon|flipkart|app pe/i]],
+season:[['off','Off-season mein sale lagayi',/clearance/i,'Sirf discount, aane ki koi nayi wajah nahi di',/off.?season|sale/i],
+['newp','Naya product rakha',/Saal bhar bikne|add karo/i,'Naya maal rakha par purane customers ko bataya hi nahi',/naya product|naya maal/i],
+['adv','Advance booking li',/advance booking|pre-booking|pre-order/i,'Booking karne pe customer ko koi fayda nahi tha',/advance|booking/i]]};
+const TRA=Object.values(TR).flat();
+function renderTried(keep){const bs=[];document.querySelectorAll('#pb .chip.on').forEach(c=>Object.keys(P[c.dataset.k][1]).forEach(b=>{if(!bs.includes(b))bs.push(b)}));
+if(!bs.length)['vis','conv','rep'].forEach(b=>bs.push(b));
+const prev=keep||[...document.querySelectorAll('#tr .chip.on')].map(c=>c.dataset.k),seen={};
+$('tr').innerHTML=bs.flatMap(b=>TR[b]).filter(x=>!seen[x[0]]&&(seen[x[0]]=1)).map(x=>`<span class="chip${prev.includes(x[0])?' on':''}" data-k="${x[0]}">${x[1]}</span>`).join('')}
+renderTried();
 let owner=false;$('ob').onclick=()=>{owner=!owner;$('ob').textContent=owner?'Meri view':'Owner view';document.querySelectorAll('.priv').forEach(e=>e.classList.toggle('hide',owner))};
 
 // type × problem specific solutions: [aaj1, aaj2, hafte]
@@ -165,9 +208,11 @@ ppl:{a:['Har staff ka kaam 1 line mein likh ke do','Roz 5 min baat: aaj ka targe
 comp:{a:['Wo pakdo jo online/bada store nahi de sakta: pehchaan, khaata, turant delivery, badli aasaan','WhatsApp pe order + jaldi delivery — "utna hi fast, upar se bharosa"'],w:['Roz ki 20 common cheezon ka rate online jitna — baaki pe normal margin','Regular customers ke liye monthly khaata / delivery list'],m:['Wo cheezein rakho jo online nahi milti: local, fresh, khaas, ya service','Insta/WhatsApp pe dukaan ka chehra dikhao — log insaan se kharidte hain']},
 season:{a:['Season ke customers ki WhatsApp list — khaali mahino mein unhe special offer','Pada hua season ka maal clearance mein nikaalo'],w:['Agle 6 mahino ke chhote mauke likho: school, birthday, mela, shaadi ki dates','Season se pehle advance booking pe discount — cash pehle aata hai'],m:['Khaali mahino mein bulk order: school, office, society','Saal bhar ka calendar — har mahine 1 occasion ka offer']}};
 const PK={vis:1,conv:0,rep:0,money:1,ops:0,ppl:0,comp:0,season:0};
-function sol(b,ty,u){const g=G[b],f=z=>z.replace('%C',T[ty][2]).replace('%U',u?'Udhaar ka rule abhi se: limit + 15 din; sabse purane 5 udhaar walon ko polite reminder + UPI link':'Dukaan ke khaali ghante (jaise dopahar) ke liye alag offer — kharcha wahi, bikri zyada');
-const s=TS[ty]&&TS[ty][b];if(!s)return{a:g.a.map(f),w:g.w.map(f),m:g.m.map(f)};
-return{a:[s[0],s[1],f(g.a[PK[b]])],w:[s[2],f(g.w[0])],m:g.m.map(f)}}
+function sol(b,ty,u,ex){ex=ex||[];const g=G[b],f=z=>z.replace('%C',T[ty][2]).replace('%U',u?'Udhaar ka rule abhi se: limit + 15 din; sabse purane 5 udhaar walon ko polite reminder + UPI link':'Dukaan ke khaali ghante (jaise dopahar) ke liye alag offer — kharcha wahi, bikri zyada');
+const ts=TS[ty]&&TS[ty][b],ok=z=>!ex.some(re=>re.test(z));
+let a=(ts?[ts[0],ts[1]]:[]).concat(g.a.map(f)).filter(ok),w=(ts?[ts[2]]:[]).concat(g.w.map(f)).filter(ok),m=g.m.map(f).filter(ok);
+while(a.length<2&&w.length)a.push(w.shift());while(a.length<2&&m.length)a.push(m.shift());while(!w.length&&m.length>1)w.push(m.shift());
+return{a:a.slice(0,3),w:w.slice(0,3),m:m.slice(0,2)}}
 function effType(d){if(d.ty!=='other'||!d.ot)return d.ty;const h=OM.find(([re])=>re.test(d.ot));return h?h[1]:'other'}
 
 
@@ -179,6 +224,7 @@ const est=s?s*m-f:null;
 if(s&&f&&est<s*.05)sc.money+=2;
 let rk=Object.entries(sc).sort((a,b)=>b[1]-a[1]).filter(x=>x[1]>0).map(x=>x[0]);
 if(!rk.length)rk=['conv','rep'];if(rk.length<2)rk.push(rk[0]==='conv'?'rep':'conv');
+const tried=TRA.filter(x=>(d.tr||[]).includes(x[0])||(d.tt&&x[4].test(d.tt))),ex=tried.map(x=>x[2]).filter(Boolean),ttMatched=d.tt&&TRA.some(x=>x[4].test(d.tt));
 d.top=B[rk[0]][0];const u=d.pb.includes('udh')||/udh?aa?r|baa?ki|credit/i.test(d.rm),top=rk[0],g1=s?gainOf(top,s,m,f):0,g2=s?gainOf(rk[1],s,m,f):0,gain=g1;d.gain=Math.round(g1+g2);
 const ask={vis:['Naye customer aapke paas kaise aate hain?','Google pe "near me" search karke dekho — dukaan dikhti hai?'],conv:['Jo bina kharide jaate hain, wo kya maangte the?','Aapka sabse zyada bikne wala item kaunsa hai?'],rep:['Aapke 10 pakke customer kaun hain, aur wo kyun aate hain?','Purane customer ko aakhri baar kab message kiya?'],money:['Sabse zyada kya bikta hai, aur usme kitna bachta hai?','Sabse bada kharcha kaunsa hai?'],ops:['Aap ek din na aao to kya ruk jaata hai?','Maal khatam hone ka pata kaise chalta hai?'],ppl:['Pichla staff kyun chhod ke gaya?','Staff ko salary ke alawa kya milta hai?'],comp:['Customer kis cheez ke liye bolta hai ki online/wahan sasta hai?','Aap kya dete ho jo online wala nahi de sakta?'],season:['Saal ke kaunse mahine sabse khaali jaate hain?','Season wale customers ke number aapke paas hain?']}[top];
 let h=`<div class="card"><h2>Checkup · ${esc(d.nm)||'Business'}${d.ar?' · '+esc(d.ar):''}${d.ty==='other'&&d.ot?' · '+esc(d.ot)+(et!=='other'?' (≈ '+T[et][0].split(' /')[0]+')':' (general solutions)'):''}</h2>
@@ -190,24 +236,25 @@ Margin <input id="mgi" type="number" inputmode="decimal" value="${+(m*100).toFix
 2. Usme se mahine ka fix kharcha ${R(f)} ghatao = <b>${R(est)}</b><br>
 <span class="mut">Dhyan rahe: kharche mein maal ki kharid shamil nahi honi chahiye, warna maal do baar katega aur bachat galat (minus mein bhi) aayegi. ${d.mg?'Margin owner ke bataye hisaab se hai.':'Margin typical hai, is dukaan ka asli margin alag ho sakta hai.'}</span></div>`:''}
 ${s?`<div class="win">Dono plan milake andaazan <b style="color:var(--acc)">+${R(g1+g2)} har mahine</b> = <b>${R((g1+g2)*12)} saal ka</b> extra bachat.<br><span class="mut">Har plan ka hisaab neeche uske card mein tap karke dekho.</span></div>`:''}</div>`;
-rk.slice(0,2).forEach((x,i)=>{const o=sol(x,et,u);h+=`<div class="card"><h2>${i?'Saath mein':'Plan'} · ${B[x][0]}</h2>
+rk.slice(0,2).forEach((x,i)=>{const o=sol(x,et,u,ex);h+=`<div class="card"><h2>${i?'Saath mein':'Plan'} · ${B[x][0]}</h2>
 ${s?calcHtml(x,s,m,f,i?g2:g1,'cg'+i):''}<div class="tier">Aaj se (bina kharche)</div><ol>${o.a.map(z=>`<li>${z}</li>`).join('')}</ol>
 <div class="tier">Is hafte</div><ol>${o.w.map(z=>`<li>${z}</li>`).join('')}</ol>
 ${i?'':`<div class="tier">1 mahine mein</div><ol>${o.m.map(z=>`<li>${z}</li>`).join('')}</ol>`}</div>`});
+if(tried.length||d.tt)h+=`<div class="card"><h2>Jo pehle try kiya — poora kaam kyun nahi kiya</h2><ul>${tried.map(x=>`<li><b>${x[1]}:</b> ${x[3]}</li>`).join('')}${d.tt&&!ttMatched?`<li><b>${esc(d.tt)}:</b> owner se poocho — kitne din kiya, kaise kiya, aur kya result aaya? Aksar ek-do baar karke chhod dete hain, isliye fark nahi dikhta.</li>`:''}</ul><p class="mut" style="margin:6px 0 0">Upar ke plan mein ye cheezein dobara nahi hain — sirf naye kaam.</p></div>`;
 h+=`<div class="card priv${owner?' hide':''}"><h2>Mere notes</h2>
 <p><b>Owner se aur poocho (solution ko unki dukaan pe fit karne ke liye):</b></p><ul>${ask.map(z=>`<li>${z}</li>`).join('')}</ul>
 <p><b>Jaate waqt:</b></p><ul><li>"2 hafte baad aake dekhta hoon kitna fark pada"</li><li>"Aapke jaan-pehchaan mein koi owner jisko help chahiye?"</li></ul></div>
 <button class="btn s" id="cp">Owner ko WhatsApp ke liye copy karo</button>`;
 $('out').innerHTML=h;if(keep){$('cb').classList.remove('hide')}else $('out').scrollIntoView({behavior:'smooth'});
 const mi=$('mgi');if(mi)mi.onchange=()=>{const v=parseFloat(mi.value);LD.mg=v>0&&v<100?v/100:0;run(LD,1);try{const l=store();if(l[0]&&l[0].t===LD.t){l[0].mg=LD.mg;localStorage.setItem('bizcheck2',JSON.stringify(l))}}catch(e){}};
-const o=sol(top,et,u);
+const o=sol(top,et,u,ex);
 const txt=`*VyaparCheck${d.nm?' — '+d.nm:''}*\n\nMain baat: ${B[top][1]}\n${gain?`Mauka: ${LV[top][0]} → +${R(gain)} har mahine\n`:''}\n*Aaj se:*\n${o.a.map((z,i)=>`${i+1}. ${z}`).join('\n')}\n\n*Is hafte:*\n${o.w.map((z,i)=>`${i+1}. ${z}`).join('\n')}\n\n2 hafte baad milke dekhte hain kitna fark pada 👍`;
 $('cp').onclick=()=>copy(txt);}
 function esc(s){return (s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}
 function copy(t){const ok=()=>{$('cp').textContent='Copy ho gaya ✓'};const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(e){}a.remove()};
 try{navigator.clipboard.writeText(t).then(ok,fb)}catch(e){fb()}}
-function read(){return{nm:$('nm').value.trim(),ar:$('ar').value.trim(),ty:$('ty').value,ot:$('ot').value.trim(),sl:parseFloat($('sl').value)||0,fx:parseFloat($('fx').value)||0,rm:$('rm').value,pb:[...document.querySelectorAll('#pb .chip.on')].map(c=>c.dataset.k)}}
-function fill(d){['nm','ar','ty','rm','ot'].forEach(i=>$(i).value=d[i]||'');$('otw').classList.toggle('hide',d.ty!=='other');$('sl').value=d.sl||'';$('fx').value=d.fx||'';document.querySelectorAll('#pb .chip').forEach(c=>c.classList.toggle('on',d.pb.includes(c.dataset.k)))}
+function read(){return{nm:$('nm').value.trim(),ar:$('ar').value.trim(),ty:$('ty').value,ot:$('ot').value.trim(),sl:parseFloat($('sl').value)||0,fx:parseFloat($('fx').value)||0,rm:$('rm').value,tt:$('tt').value.trim(),tr:[...document.querySelectorAll('#tr .chip.on')].map(c=>c.dataset.k),pb:[...document.querySelectorAll('#pb .chip.on')].map(c=>c.dataset.k)}}
+function fill(d){['nm','ar','ty','rm','ot'].forEach(i=>$(i).value=d[i]||'');$('otw').classList.toggle('hide',d.ty!=='other');$('sl').value=d.sl||'';$('fx').value=d.fx||'';document.querySelectorAll('#pb .chip').forEach(c=>c.classList.toggle('on',d.pb.includes(c.dataset.k)));renderTried(d.tr||[]);$('tt').value=d.tt||''}
 function store(){try{return JSON.parse(localStorage.getItem('bizcheck2')||'[]')}catch(e){return[]}}
 $('fm').onsubmit=e=>{e.preventDefault();return false};
 $('go').onclick=()=>{const d=read();run(d);d.t=new Date().toLocaleString('en-IN');const l=store();l.unshift(d);try{localStorage.setItem('bizcheck2',JSON.stringify(l.slice(0,100)))}catch(e){}};
@@ -218,7 +265,7 @@ $('hl').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(b.textContent!
 $('hb').onclick=()=>{$('hist').classList.toggle('hide');showHist()};
 $('da').onclick=()=>{const b=$('da');if(!store().length)return;if(b.textContent!=='Pakka? Sab hat jayega'){b.textContent='Pakka? Sab hat jayega';setTimeout(()=>b.textContent='Sab delete',4000);return}save([]);b.textContent='Sab delete';showHist()};
 $('ex').onclick=()=>{const l=store();if(!l.length)return;const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-const rows=[['Date','Naam','Area','Type','Business (other)','Mahine ka dhanda','Fix kharcha','Margin %','Problems','Note','Main category','Andaazan fayda/mahina']].concat(l.map(d=>[d.t,d.nm,d.ar,T[d.ty]?T[d.ty][0]:d.ty,d.ot,d.sl||'',d.fx||'',d.mg?Math.round(d.mg*1000)/10:'',(d.pb||[]).map(k=>P[k]?P[k][0]:k).join('; '),d.rm,d.top,d.gain||'']));
+const rows=[['Date','Naam','Area','Type','Business (other)','Mahine ka dhanda','Fix kharcha','Margin %','Problems','Pehle try kiya','Note','Main category','Andaazan fayda/mahina']].concat(l.map(d=>[d.t,d.nm,d.ar,T[d.ty]?T[d.ty][0]:d.ty,d.ot,d.sl||'',d.fx||'',d.mg?Math.round(d.mg*1000)/10:'',(d.pb||[]).map(k=>P[k]?P[k][0]:k).join('; '),(d.tr||[]).map(k=>{const x=TRA.find(y=>y[0]===k);return x?x[1]:k}).concat(d.tt?[d.tt]:[]).join('; '),d.rm,d.top,d.gain||'']));
 const csv='\ufeff'+rows.map(r=>r.map(q).join(',')).join('\n'),fn='vyaparcheck-records.csv';
 const dl=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=fn;document.body.appendChild(a);a.click();a.remove()};
 try{const file=new File([csv],fn,{type:'text/csv'});if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file]}).catch(()=>{});return}}catch(e){}dl()};
